@@ -1,0 +1,55 @@
+# =========================
+# BioDock .gitignore
+# =========================
+
+# ---------- Python ----------
+__pycache__/
+*.py[cod]
+*.pyo
+
+# ---------- Virtual environments ----------
+.venv/
+venv/
+env/
+biodock/
+
+# ---------- pytest ----------
+.pytest_cache/
+.coverage
+htmlcov/
+
+# ---------- macOS ----------
+.DS_Store
+
+# ---------- IDE / editors ----------
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ---------- Environment / secrets ----------
+.env
+*.env
+
+# ---------- P2Rank build files ----------
+p2rank-2.5.1/build/
+p2rank-2.5.1/.gradle/
+
+# P2Rank generated test/output files
+p2rank-2.5.1/distro/test_output/
+
+# P2Rank logs
+p2rank-2.5.1/*.log
+p2rank-2.5.1/distro/*.log
+
+# ---------- Generated docking files ----------
+# AutoDock Vina receptor/ligand files
+*.pdbqt
+
+# ---------- Generated P2Rank prediction files ----------
+*_predictions.csv
+*_residues.csv
+
+# ---------- Temporary files ----------
+*.tmp
+*.bak
