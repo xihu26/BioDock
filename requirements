@@ -1,0 +1,14 @@
+requests
+rcsb-api
+rdkit 
+meeko
+scipy
+gemmi
+pdbfixer
+csv
+subprocess
+pytest
+
+
+p2rank-2.5.1
+java 17
