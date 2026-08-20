@@ -1,11 +1,14 @@
 import csv
 import subprocess
+from plip.structure.preparation import PDBComplex
 
 def main():
-    protein = "1C8Q"
+    protein = "5U3A"
     ligand = "cinnamaldehyde"
     print(find(protein))
     dock(protein, ligand)
+    docked_file = convert_docked(ligand, protein)
+    print(analyze_interactions(docked_file))
 
 def find(protein):
 #Ligand Finding on receptor
@@ -40,8 +43,39 @@ def dock(protein, ligand):
     "vina",
     "--receptor", f"proteins/{protein}.pdbqt",
     "--ligand", f"ligands/{ligand}.pdbqt",
-    "--config", "proteins/config.txt"
+    "--config", "proteins/config.txt",
+     "--out", f"results/{ligand}_{protein}.pdbqt"
 ], check=True)
+
+#Analysis
+def convert_docked(ligand, protein):
+    subprocess.run([
+        "obabel",
+        f"proteins/{protein}.pdb",
+        f"results/{ligand}_{protein}.pdbqt",
+        "-O",
+        f"results/{ligand}_{protein}.pdb"
+    ], check=True)
+    return f"results/{ligand}_{protein}.pdb"
+
+def analyze_interactions(docked_file):
+    molecule = PDBComplex()
+    molecule.load_pdb(docked_file)
+    molecule.analyze()
+
+    for ligand_id, interactions in molecule.interaction_sets.items():
+        return (
+    f"\nLigand: {ligand_id}\n"
+    f"Hydrogen bonds: {len(interactions.hbonds_ldon) + len(interactions.hbonds_pdon)}\n"
+    f"Hydrophobic contacts: {len(interactions.all_hydrophobic_contacts)}\n"
+    f"π-stacking: {len(interactions.pistacking)}\n"
+    f"π-cation interactions: {len(interactions.pication_laro) + len(interactions.pication_paro)}\n"
+    f"Salt bridges: {len(interactions.saltbridge_lneg) + len(interactions.saltbridge_pneg)}\n"
+    f"Halogen bonds: {len(interactions.halogen_bonds)}\n"
+    f"Water bridges: {len(interactions.water_bridges)}\n"
+    f"Metal complexes: {len(interactions.metal_complexes)}"
+)
+
 
 if __name__ == "__main__":
     main()
