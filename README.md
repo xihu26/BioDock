@@ -34,13 +34,14 @@ Docking-ready receptor + ligand
 * RDKit
 * Requests
 * Meeko
-* RCSB Python API
-* BioBB Chemistry / AmberTools (for receptor preparation)
+* scipy
+* gemmi
+* pdbfixer
 
 Install the Python dependencies with:
 
 ```bash
-pip install rdkit requests meeko rcsbapi biobb-chemistry
+pip install rdkit requests meeko scipy gemmi pdbfixer
 ```
 
 ## Usage

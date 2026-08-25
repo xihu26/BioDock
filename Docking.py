@@ -3,7 +3,7 @@ import subprocess
 from plip.structure.preparation import PDBComplex
 
 def main():
-    protein = "5U3A"
+    protein = "8CB1"
     ligand = "cinnamaldehyde"
     print(find(protein))
     dock(protein, ligand)
@@ -51,7 +51,6 @@ def dock(protein, ligand):
 def convert_docked(ligand, protein):
     subprocess.run([
         "obabel",
-        f"proteins/{protein}.pdb",
         f"results/{ligand}_{protein}.pdbqt",
         "-O",
         f"results/{ligand}_{protein}.pdb"

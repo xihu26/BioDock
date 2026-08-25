@@ -69,7 +69,7 @@ def search_uniprot(protein, organism, gene):
         profile = {
         "accession": result["primaryAccession"],
         "protein_name": result["proteinDescription"]["recommendedName"]["fullName"]["value"] if "recommendedName" in result["proteinDescription"] else result["proteinDescription"]["submittedName"][0]["fullName"]["value"] if "submittedName" in result["proteinDescription"] else "Unknown",
-        "gene": result["genes"][0]["geneName"]["value"],
+        "gene": result["genes"][0]["geneName"]["value"] if "genes" in result  else "Unknown",
         "organism": result["organism"]["scientificName"],
         "entry_name": result["uniProtkbId"]
         }
@@ -124,10 +124,14 @@ def best_pdb(pdb_ids):
     structures = []
 
     for entry in results["data"]["entries"]:
+        resolution = entry["rcsb_entry_info"]["resolution_combined"]
+        if resolution is None:
+            continue
         structure = PDBStructure(
         pdb_id = entry["rcsb_id"],
         method = entry["exptl"][0]["method"],
-        resolution = entry["rcsb_entry_info"]["resolution_combined"][0])
+        resolution = resolution[0]
+        )
         structures.append(structure)
 
     structures.sort(key=lambda structure: structure.resolution)
