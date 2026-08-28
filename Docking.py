@@ -3,8 +3,8 @@ import subprocess
 from plip.structure.preparation import PDBComplex
 
 def main():
-    protein = "8CB1"
-    ligand = "cinnamaldehyde"
+    protein = "3SH4"
+    ligand = "donepezil"
     print(find(protein))
     dock(protein, ligand)
     docked_file = convert_docked(ligand, protein)
@@ -49,13 +49,39 @@ def dock(protein, ligand):
 
 #Analysis
 def convert_docked(ligand, protein):
+    ligand_pose = f"results/{ligand}_{protein}_pose.pdb"
+    combined_file = f"results/{ligand}_{protein}.pdb"
+
+    #Converting the best docking pose into PDB format using Open Babel
     subprocess.run([
         "obabel",
         f"results/{ligand}_{protein}.pdbqt",
         "-O",
-        f"results/{ligand}_{protein}.pdb"
+        ligand_pose, #1 = best pose
+        "-f", "1",
+        "-l", "1" 
     ], check=True)
-    return f"results/{ligand}_{protein}.pdb"
+
+    # Combine protein and ligand
+    with open(f"proteins/{protein}_fixed.pdb", "r") as protein_file:
+        protein_lines = protein_file.readlines()
+
+    with open(ligand_pose, "r") as ligand_file:
+        ligand_lines = ligand_file.readlines()
+
+    with open(combined_file, "w") as output:
+        #protein writing
+        for line in protein_lines:
+            if line.startswith(("ATOM", "HETATM", "TER")):
+                output.write(line)
+        output.write("TER\n") #End of molecular chain
+
+        #Write docked ligand
+        for line in ligand_lines:
+            if line.startswith(("ATOM", "HETATM")):
+                output.write(line)
+        output.write("END\n")
+    return combined_file
 
 def analyze_interactions(docked_file):
     molecule = PDBComplex()
@@ -63,17 +89,63 @@ def analyze_interactions(docked_file):
     molecule.analyze()
 
     for ligand_id, interactions in molecule.interaction_sets.items():
-        return (
-    f"\nLigand: {ligand_id}\n"
-    f"Hydrogen bonds: {len(interactions.hbonds_ldon) + len(interactions.hbonds_pdon)}\n"
-    f"Hydrophobic contacts: {len(interactions.all_hydrophobic_contacts)}\n"
-    f"π-stacking: {len(interactions.pistacking)}\n"
-    f"π-cation interactions: {len(interactions.pication_laro) + len(interactions.pication_paro)}\n"
-    f"Salt bridges: {len(interactions.saltbridge_lneg) + len(interactions.saltbridge_pneg)}\n"
-    f"Halogen bonds: {len(interactions.halogen_bonds)}\n"
-    f"Water bridges: {len(interactions.water_bridges)}\n"
-    f"Metal complexes: {len(interactions.metal_complexes)}"
-)
+        analysis = {
+    "Ligand": ligand_id,
+    "Hydrogen bonds": int(len(interactions.hbonds_ldon) + len(interactions.hbonds_pdon)),
+    "Hydrophobic contacts": int(len(interactions.all_hydrophobic_contacts)),
+    "π-stacking": int(len(interactions.pistacking)),
+    "π-cation interactions": int(len(interactions.pication_laro) + len(interactions.pication_paro)),
+    "Salt bridges": int(len(interactions.saltbridge_lneg) + len(interactions.saltbridge_pneg)),
+    "Halogen bonds": int(len(interactions.halogen_bonds)),
+    "Water bridges": int(len(interactions.water_bridges)),
+    "Metal complexes": int(len(interactions.metal_complexes))
+        }
+
+#Verbal interpretation
+    ligand_name = analysis["Ligand"]
+    hbonds = analysis["Hydrogen bonds"]
+    hydrophobic = analysis["Hydrophobic contacts"]
+    pistacking = analysis["π-stacking"]
+    pication = analysis["π-cation interactions"]
+    salt_bridges = analysis["Salt bridges"] #For future refinement purposes
+
+        # Overall biochemical interpretation
+    result = (f"\nThe predicted ligand forms {hbonds} Hydrogen bonds and {hydrophobic} hydrophobic contacts with the protein. ")
+
+    if hydrophobic > hbonds and hydrophobic > 0:
+        result += (
+            "Biochemically, this suggests that the ligand is primarily "
+            "stabilised within a hydrophobic region of the binding pocket. "
+        )
+
+        if hbonds > 0:
+            result += (
+                "The hydrogen bonds may help orient the ligand and increase "
+                "binding specificity by providing favourable polar interactions."
+            )
+
+    elif hbonds > hydrophobic and hbonds > 0:
+        result += (
+            "Biochemically, the predicted binding appears to rely mainly on "
+            "specific polar interactions. Hydrogen bonds can help stabilise "
+            "the ligand in a particular orientation within the binding pocket."
+        )
+
+    elif hbonds > 0 and hydrophobic > 0:
+        result += (
+            "The predicted binding appears to involve a combination of "
+            "hydrophobic and polar interactions, which may collectively "
+            "stabilise the ligand within the binding pocket."
+        )
+
+    else:
+        result += (
+            "Few major non-covalent interactions were detected, suggesting "
+            "that the predicted binding mode may be weakly stabilised or "
+            "depend on interaction types not captured in this summary."
+        )
+
+    return result
 
 
 if __name__ == "__main__":

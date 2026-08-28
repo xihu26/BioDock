@@ -38,6 +38,7 @@ def main():
         return
     
     structures2 = best_pdb(best_profiles)
+    
     for structure in structures2:
         print(f"Trying {structure.pdb_id}\nresolution: {structure.resolution} Å)")
         for structure in structures2:

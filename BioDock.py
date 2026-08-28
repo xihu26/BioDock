@@ -1,6 +1,7 @@
 from Retrieval import search_uniprot, search_pdb, best_pdb, download_best, search_ligand
 from Preparation import convert_ligand, convert_receptor
-from Docking import find, dock
+from Docking import find, dock, convert_docked, analyze_interactions
+import subprocess
 
 def main():
 #Retrieval
@@ -35,18 +36,16 @@ def main():
 
     for structure in structures2:
         print(f"Trying {structure.pdb_id}\nresolution: {structure.resolution} Å)")
-
-        for structure in structures2:
-            try:
-                download_best(structure)
-                convert_receptor(structure.pdb_id)
-                best_protein = structure
-                break
-            except ValueError:
+        try:
+            download_best(structure)
+            convert_receptor(structure.pdb_id)
+            best_protein = structure
+            break
+        except (ValueError, subprocess.CalledProcessError):
                 continue
-        else:
-            print("No suitable PDB structure could be prepared.")
-            return
+    if best_protein is None:
+        print("No suitable PDB structure could be prepared.")
+        return
     print("Selected protein:", best_protein)
 
 #Ligand search & Preparation
@@ -57,6 +56,8 @@ def main():
 #Docking
     print(find(best_protein.pdb_id))
     dock(best_protein.pdb_id, ligand)
+    docked_file = convert_docked(ligand, best_protein.pdb_id)
+    print(analyze_interactions(docked_file))
 
 
 if __name__ == "__main__":
