@@ -8,6 +8,9 @@ BioDock AI is an automated molecular docking pipeline that retrieves suitable pr
 * Prepares receptor structures for docking.
 * Converts ligand structures from SDF to PDBQT using **Meeko**.
 * Designed to handle multiple protein matches and structures.
+* Analyses predicted molecular interactions using **PLIP**
+* Generates a concise biochemical interpretation of the predicted binding interactions.
+
 
 ## Pipeline
 ```text
@@ -30,19 +33,25 @@ Docking-ready receptor + ligand
 
 ## Requirements
 
-* Python 3
 * RDKit
 * Requests
 * Meeko
-* scipy
-* gemmi
-* pdbfixer
+* PDBFixer
+* OpenMM
+* PLIP
+* RCSB API
 
 Install the Python dependencies with:
 
 ```bash
-pip install rdkit requests meeko scipy gemmi pdbfixer
+pip install requests meeko pdbfixer openmm plip rcsb-api
 ```
+## External Tools
+BioDock also requires the following external molecular modelling tools:
+
+P2Rank — binding pocket prediction
+AutoDock Vina — molecular docking
+Open Babel — molecular structure conversion
 
 ## Usage
 
@@ -62,16 +71,15 @@ Scientific Organism name: homo sapiens
 
 BioDock will search for matching UniProt profiles, identify associated PDB structures, and select a suitable structure for preparation.
 
-## Project Structure
-
-```text
-BioDock AI/
-├── BioDock
-├── Preparation
-├── proteins/
-├── ligands/
-└── README.md
-```
-
 ## Status
 BioDock is currently under development, with ongoing work on robust receptor preparation, non-standard residue handling, and docking integration.
+
+## Limitations
+BioDock is currently under development.
+
+Current limitations include:
+* Docking predictions depend heavily on the quality of the available protein structure.
+* The highest-ranked P2Rank pocket may not always correspond to the biologically relevant binding site.
+* Protein preparation may fail for structures containing unusual residues or complex bonding patterns. Residues with missing atoms and unmatched templates are ignored.
+* AutoDock Vina binding affinities are computational estimates and should not be interpreted as experimentally measured binding energies.
+* Predicted interactions require experimental or higher-level computational validation.
